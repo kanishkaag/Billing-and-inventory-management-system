@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - Shop Bill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+        .header, .customer-details, .item-list, .total, .payment-status {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+        }
+        .header .shop-info {
+            width: 60%;
+        }
+        .header .invoice-info {
+            text-align: right;
+            width: 35%;
+        }
+        h2, h3, h4 {
+            margin: 0;
+            padding: 0;
+        }
+        .customer-details div, .item-list div, .payment-status div {
+            margin-bottom: 10px;
+        }
+        .item-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .item-list table, .item-list th, .item-list td {
+            border: 1px solid #ddd;
+        }
+        .item-list th, .item-list td {
+            padding: 10px;
+            text-align: left;
+        }
+        .item-list th {
+            background-color: #f4f4f9;
+            font-weight: bold;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .total .amount {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Shop Details and Invoice Info -->
+    <div class="header">
+        <!-- Shop Information -->
+        <div class="shop-info">
+            <h2>Handy Store</h2>
+            <div id="shopAddress">Heron 104 BTM Layout, Bangalore, 560102</div>
+            <div id="shopContactNumber">Mobile Number: 8888777700</div>
+            <div id="shopEmail">Email: newmobiles009@gmail.com</div>
+            <div id="shopGSTIN">GSTIN: 29AACGV9498G1ZR</div>
+        </div>
+
+        <!-- Invoice Information with Live Date and Time -->
+        <div class="invoice-info">
+            <h4>Invoice No.</h4>
+            <div id="invoiceNo">SG/SL5</div>
+            <h4>Invoice Date</h4>
+            <div id="invoiceDate"></div>
+            <h4>Invoice Time</h4>
+            <div id="invoiceTime"></div>
+        </div>
+    </div>
+
+    <!-- Customer Details Section -->
+    <div class="customer-details">
+        <h3>Bill To</h3>
+        <div id="customerName"></div>
+        <div id="customerContact"></div>
+    </div>
+
+    <!-- Item List Section -->
+    <div class="item-list">
+        <h3>Item Purchased</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Item</th>
+                <th>Exp. Date</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Amount</th>
+            </tr>
+            </thead>
+            <tbody id="itemList">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Total Amount Section -->
+    <div class="total">
+        <span>Total Amount:</span><span id="totalAmount" class="amount"></span>
+    </div>
+
+    <!-- Payment Status Section -->
+    <div class="payment-status">
+        <h3>Payment Status</h3>
+        <div id="paymentStatus"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('keydown', function () {
+        window.location.href = 'bill.html'; // Redirects to bill.html
+    });
+
+    // Function to set fixed date and time on page load
+    const setInvoiceDateTime = () => {
+        const now = new Date();
+        const date = now.toISOString().split('T')[0]; // Date in YYYY-MM-DD format
+        const time = now.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const invoiceDate = document.getElementById('invoiceDate');
+        const invoiceTime = document.getElementById('invoiceTime');
+        if (invoiceDate) invoiceDate.textContent = formatDate(date); // Formatting the date properly
+        if (invoiceTime) invoiceTime.textContent = time;
+    };
+
+    // Function to populate customer, item, and payment details
+    const populateInvoiceDetails = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerName = urlParams.get('customerName') || localStorage.getItem('customerName') || 'John Doe';
+        const contactNumber = urlParams.get('contactNumber') || localStorage.getItem('contactNumber') || '1234567890';
+        const totalAmount = urlParams.get('totalAmount') || localStorage.getItem('total') || '0.00';
+        const paymentStatus = urlParams.get('paymentStatus') || localStorage.getItem('paymentStatus') || 'Pending';
+
+        const customerNameEl = document.getElementById('customerName');
+        const customerContactEl = document.getElementById('customerContact');
+        const totalAmountEl = document.getElementById('totalAmount');
+        const paymentStatusEl = document.getElementById('paymentStatus');
+
+        if (customerNameEl) customerNameEl.innerText = "Name: " + customerName;
+        if (customerContactEl) customerContactEl.innerText = "Contact: " + contactNumber;
+        if (totalAmountEl) totalAmountEl.innerText = `Total: Rs ${parseFloat(totalAmount).toFixed(2)}`;
+        if (paymentStatusEl) paymentStatusEl.innerText = `Payment: ${paymentStatus}`;
+
+        const itemList = JSON.parse(localStorage.getItem('itemList')) || [];
+        const itemTableBody = document.getElementById('itemList');
+        if (itemTableBody) {
+            let calculatedTotal = 0;
+
+            itemList.forEach((item, index) => {
+                // Validate expiry_date before appending
+                const validExpDate = item.expDate ? convertToISODate(item.expDate) : null;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${validExpDate || '-'}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.price}</td>
+                    <td>${(item.qty * item.price).toFixed(2)}</td>
+                `;
+                itemTableBody.appendChild(row);
+                calculatedTotal += item.qty * item.price;
+            });
+
+            totalAmountEl.innerText = `Rs ${calculatedTotal.toFixed(2)}`;
+        }
+
+        sendBillData(customerName, contactNumber, totalAmount, paymentStatus, itemList);
+    };
+
+    // Helper function to convert date to YYYY-MM-DD format
+    const convertToISODate = (dateString) => {
+        if (!dateString) return null;
+
+        // Handle case where dateString is already in YYYY-MM-DD format
+        const regex = /^\d{4}-\d{2}-\d{2}$/; // Check if the format is already YYYY-MM-DD
+        if (regex.test(dateString)) {
+            return dateString;
+        }
+
+        // Try parsing it as MM/DD/YYYY
+        const [month, day, year] = dateString.split('/');
+        if (month && day && year) {
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+
+        return null; // Return null for invalid date formats
+    };
+
+    // Function to format the date and time as 'YYYY-MM-DD HH:mm:ss'
+    const formatDateTime = (date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    // Function to format a date string to YYYY-MM-DD (for UI)
+    const formatDate = (dateString) => {
+        // Check if the date is valid
+        const date = new Date(dateString);
+        if (isNaN(date)) {
+            console.error("Invalid Date Format: ", dateString);
+            return 'Invalid Date'; // Return an error message if invalid
+        }
+        return date.toISOString().split('T')[0]; // Return formatted YYYY-MM-DD
+    };
+
+    // Function to send bill data to the backend
+    const sendBillData = (customerName, contactNumber, totalAmount, paymentStatus, itemList) => {
+        const timestamp = formatDateTime(new Date());  // Send formatted date and time (YYYY-MM-DD HH:mm:ss)
+
+        const billData = {
+            customer_name: customerName,
+            contact_number: contactNumber,
+            timestamp: timestamp,  // Send date as 'YYYY-MM-DD HH:mm:ss'
+            total_amount: parseFloat(totalAmount),
+            payment_status: paymentStatus,
+            items: itemList.map(item => ({
+                name: item.name,
+                qty: item.qty,
+                price: item.price,
+                // Ensure expiry_date is in the correct format
+                expiry_date: (item.expDate && item.expDate !== '0000-00-00') ? convertToISODate(item.expDate) : null
+            }))
+        };
+
+        fetch('http://localhost:8080/backend/save_bill', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(billData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Bill data sent successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error sending bill data:', error);
+            });
+    };
+
+    // Run both functions on page load
+    window.onload = () => {
+        setInvoiceDateTime();
+        populateInvoiceDetails();
+    };
+</script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purple Billing System - Logout</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: #333;
+        }
+
+        h1 {
+            color: #8e44ad;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #8e44ad;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #9b59b6;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Logout Successful</h1>
+    <p>You have been logged out of your account. Please log in again to continue.</p>
+    <button id="login-button">Login</button>
+</div>
+
+<script>
+    // Prevent users from going back to the previous page after logging out
+    if (window.history.length > 1) {
+        window.history.forward();
+    }
+
+    // Redirect to login page when the login button is clicked
+    document.getElementById("login-button").addEventListener("click", function() {
+        window.location.href = "login.html"; // Adjust to the login page
+    });
+</script>
+</body>
+</html>

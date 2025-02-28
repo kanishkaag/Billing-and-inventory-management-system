@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purple Billing System - Register</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6); /* Shades of purple */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #8e44ad; /* Primary purple color */
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        h1 .purple {
+            color: #9b59b6; /* Secondary purple shade */
+        }
+
+        p {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background: #8e44ad; /* Primary purple color */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #7d3c98; /* Darker purple shade for hover */
+        }
+
+        #register-message {
+            color: red;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="register-section">
+        <h1>Welcome to <span class="purple">Purple</span></h1>
+        <p>"Simplifying Billing and Inventory Management for Your Business"</p>
+
+        <div id="register-form">
+            <h2>Register</h2>
+            <input type="text" id="register-user" placeholder="Username" required>
+            <input type="password" id="register-password" placeholder="Password" required>
+            <button id="register-button">Register</button>
+            <p id="register-message"></p>
+            <p class="toggle-link" onclick="window.location.href = 'login.html';">Already have an account? Login here</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function handleRegister() {
+        const username = document.getElementById("register-user").value;
+        const password = document.getElementById("register-password").value;
+
+        try {
+            const response = await fetch('http://localhost:8080/backend/add_users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                throw new Error('Registration failed');
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                displayMessage("register-message", "Registration successful. Please login.");
+                setTimeout(function() {
+                    window.location.href = "login.html"; // Redirect to login page after successful registration
+                }, 2000);
+            } else {
+                displayMessage("register-message", "Registration successful. Please login.");
+            }
+        } catch (error) {
+            displayMessage("register-message", "Error: Unable to connect to the server.");
+            console.error(error);
+        }
+    }
+
+    function displayMessage(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+    }
+
+    document.getElementById("register-button").addEventListener("click", handleRegister);
+</script>
+
+</body>
+</html>

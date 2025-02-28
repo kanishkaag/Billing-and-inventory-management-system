@@ -1,0 +1,227 @@
+<html>
+<head>
+    <title>Billing System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .form-section {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-section div {
+            margin-bottom: 15px;
+        }
+        .form-section input[type="text"] {
+            width: 200px;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        .form-section input[type="radio"] {
+            margin-left: 10px;
+        }
+        .form-section label {
+            display: inline-block;
+            width: 150px;
+        }
+        .form-section .required {
+            color: red;
+        }
+        .form-section .pay-button {
+            display: block;
+            width: 200px;
+            padding: 10px;
+            margin: 20px auto 0;
+            text-align: center;
+            background-color: white;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+        .form-section .pay-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html" class="active"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+    <div class="content">
+        <div class="header">
+            <h1>BILLING SYSTEM</h1>
+            <div>
+                <span id="date-time"></span>
+            </div>
+        </div>
+        <div class="form-section">
+            <div>
+                <label for="customer-name">Customer Name</label>
+                <input type="text" id="customer-name">
+            </div>
+            <div>
+                <label for="contact-number">Contact Number<span class="required">*</span></label>
+                <input type="text" id="contact-number">
+            </div>
+            <div>
+                <label>Pay :</label>
+                <input type="radio" id="pay-now" name="pay" checked>
+                <label for="pay-now">Now</label>
+                <input type="radio" id="pay-later" name="pay" onclick="redirectToOtherPage()">
+                <label for="pay-later">Later</label>
+            </div>
+        </div>
+        <div class="form-section">
+            <div>
+                <label for="total-amount">Total amount :</label>
+                <input type="text" id="total-amount" value="auto fill" readonly>
+            </div>
+            <div>
+                <label>Select Payment Mode :</label>
+                <input type="radio" id="cash" name="payment-mode" onclick="enablePayButton()">
+                <label for="cash">Cash</label>
+                <input type="radio" id="upi" name="payment-mode" onclick="enablePayButton()">
+                <label for="upi">UPI</label>
+                <input type="radio" id="credit-card" name="payment-mode" onclick="enablePayButton()">
+                <label for="credit-card">Credit Card</label>
+            </div>
+            <div>
+                <button class="pay-button" id="pay-button" disabled onclick="processPayment()">Pay</button>
+            </div>
+        </div>
+    </div>
+<script>
+    // Populate the total amount from localStorage on page load
+    window.onload = () => {
+        const totalAmount = localStorage.getItem('total') || '0.00';
+        document.getElementById('total-amount').value = totalAmount;
+    };
+
+    // Enable the Pay button when a payment mode is selected
+    function enablePayButton() {
+        document.getElementById('pay-button').disabled = false;
+    }
+
+    // For 'Pay Now' option
+    document.getElementById('pay-button').addEventListener('click', function () {
+        const customerName = document.getElementById('customer-name').value.trim();
+        const contactNumber = document.getElementById('contact-number').value.trim();
+        const totalAmount = localStorage.getItem('total') || '0.00';
+        const itemList = JSON.parse(localStorage.getItem('itemList')) || [];
+
+        if (customerName && contactNumber) {
+            // Store customer and payment data
+            localStorage.setItem('customerName', customerName);
+            localStorage.setItem('contactNumber', contactNumber);
+            localStorage.setItem('payNow', 'true'); // Indicates immediate payment
+
+            // Redirect to generateBill.html with payment status 'undue'
+            window.location.href = `generateBill.html?payNow=true&paymentStatus=undue`;
+        } else {
+            alert('Please fill in all required details.');
+        }
+    });
+
+    // For 'Pay Later' option
+    document.getElementById('pay-later').addEventListener('click', function () {
+        const customerName = document.getElementById('customer-name').value.trim();
+        const contactNumber = document.getElementById('contact-number').value.trim();
+        const totalAmount = localStorage.getItem('total') || '0.00';
+        const itemList = JSON.parse(localStorage.getItem('itemList')) || [];
+
+        if (customerName && contactNumber) {
+            // Store customer data
+            localStorage.setItem('customerName', customerName);
+            localStorage.setItem('contactNumber', contactNumber);
+            localStorage.setItem('payNow', 'false'); // Indicates deferred payment
+
+            // Redirect to generateBill.html with payment status 'due'
+            window.location.href = `generateBill.html?payNow=false&paymentStatus=due`;
+        } else {
+            alert('Please fill in all required details.');
+        }
+    });
+
+    function updateDateTime() {
+        const now = new Date();
+        const date = now.toLocaleDateString();
+        const time = now.toLocaleTimeString();
+        document.getElementById('date-time').textContent = `Date: ${date} Time: ${time}`;
+    }
+    setInterval(updateDateTime, 1000);
+
+    function redirectToOtherPage() {
+        window.location.href = 'generateBill.html';
+    }
+
+    function enablePayButton() {
+        document.getElementById('pay-button').disabled = false;
+    }
+
+    function processPayment() {
+        alert('Payment Done');
+    }
+</script>
+
+
+</body>
+</html>

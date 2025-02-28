@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        .form-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group input[type="date"] {
+            padding: 9px;
+        }
+        .form-group input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-group input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html" class="active"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+
+<div class="content">
+    <div class="form-container">
+        <h1>Add Product</h1>
+        <form id="product-form">
+            <div class="form-group">
+                <label for="product-code">Product Code<span style="color: red;">*</span></label>
+                <input type="text" id="product-code" name="product-code" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name<span style="color: red;">*</span></label>
+                <input type="text" id="name" name="name" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="brand">Brand</label>
+                <input type="text" id="brand" name="brand" placeholder="Value">
+            </div>
+            <div class="form-group">
+                <label for="size">Size<span style="color: red;">*</span></label>
+                <input type="text" id="size" name="size" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity<span style="color: red;">*</span></label>
+                <input type="number" id="quantity" name="quantity" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="unit">Unit</label>
+                <select id="unit" name="unit">
+                    <option value="pcs">pcs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cost-price">Cost Price<span style="color: red;">*</span></label>
+                <input type="number" id="cost-price" name="cost-price" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="sales-price">Sales Price<span style="color: red;">*</span></label>
+                <input type="number" id="sales-price" name="sales-price" placeholder="Value" required>
+            </div>
+            <div class="form-group">
+                <label for="manufacturing-date">Manufacturing Date<span style="color: red;">*</span></label>
+                <input type="date" id="manufacturing-date" name="manufacturing-date" required>
+            </div>
+            <div class="form-group">
+                <label for="expiry-date">Expiry Date<span style="color: red;">*</span></label>
+                <input type="date" id="expiry-date" name="expiry-date" required>
+            </div>
+            <div class="form-group">
+                <label for="supplier">Supplier</label>
+                <input type="text" id="supplier" name="supplier" placeholder="Value">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const productData = {
+            code: document.querySelector('input[name="product-code"]').value,
+            name: document.querySelector('input[name="name"]').value,
+            size: document.querySelector('input[name="size"]').value,
+            brand: document.querySelector('input[name="brand"]').value,
+            quantity: parseInt(document.querySelector('input[name="quantity"]').value),
+            unit: document.querySelector('select[name="unit"]').value,
+            cost_price: parseFloat(document.querySelector('input[name="cost-price"]').value),
+            selling_price: parseFloat(document.querySelector('input[name="sales-price"]').value),
+            manufacturing_date: document.querySelector('input[name="manufacturing-date"]').value,
+            expiry_date: document.querySelector('input[name="expiry-date"]').value,
+            supplier_id: document.querySelector('input[name="supplier"]').value,
+        };
+
+        fetch('http://localhost:8080/backend/add_products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                alert('Product added successfully!');
+                document.getElementById('product-form').reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding product. Please try again.');
+            });
+    });
+</script>
+
+
+</body>npm start
+</html>

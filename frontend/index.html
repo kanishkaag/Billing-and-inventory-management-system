@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orange Billing System - Login</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f3a683, #f7d794);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #f39c12;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        h1 .orange {
+            color: #e74c3c;
+        }
+
+        p {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background: #f39c12;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #e67e22;
+        }
+
+        #login-message, #register-message {
+            color: red;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+
+        #register-form {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="login-section">
+        <h1>Welcome to <span class="orange">Orange</span></h1>
+        <p>"Simplifying Billing and Inventory Management for Your Business"</p>
+
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="text" id="login-user" placeholder="Username" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button id="login-button">Login</button>
+            <p id="login-message"></p>
+        </div>
+
+        <div id="register-form">
+            <h2>Register</h2>
+            <input type="text" id="register-user" placeholder="Username" required>
+            <input type="password" id="register-password" placeholder="Password" required>
+            <button id="register-button">Register</button>
+            <p id="register-message"></p>
+        </div>
+    </div>
+</div>
+<script>
+    let userData;
+
+    // Fetch user data on page load
+    fetch('http://localhost:8080/backend/get_users', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())  // Parse the JSON response
+        .then(data => {
+            userData = data;               // Store fetched data in userData
+            console.log(userData);          // Log the data for debugging
+        })
+        .catch(error => {
+            console.error('Error:', error);  // Handle any errors
+        });
+
+    // Function to handle user login
+    async function handleLogin() {
+        const username = document.getElementById("login-user").value; // Update to match 'username'
+        const password = document.getElementById("login-password").value;
+
+        if (!userData || !Array.isArray(userData)) {
+            displayMessage("login-message", "Error: Unable to fetch user data. Please try again later.");
+            return;
+        }
+
+        // Check if user exists in userData
+        const existingUser = userData.find(
+            (u) => u.username === username && u.password === password // Match against 'username' and 'password'
+        );
+
+        if (existingUser) {
+            // User found, redirect to bill.html
+            window.location.href = "bill.html";
+        } else {
+            // User not found, ask them to register
+            displayMessage("login-message", "Invalid credentials. Please register.");
+        }
+    }
+
+    // Function to handle user registration
+    async function handleRegister() {
+        const username = document.getElementById("register-user").value; // Update to match 'username'
+        const password = document.getElementById("register-password").value;
+
+        try {
+            const response = await fetch('http://localhost:8080/backend/add_users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }) // Use 'username' and 'password'
+            });
+
+            if (!response.ok) {
+                throw new Error('Registration failed');
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                displayMessage("register-message", "Registration successful. Please login.");
+                toggleForms();
+
+                // Optionally, update local userData with the new user
+                userData.push({ username, password });
+            } else {
+                displayMessage("register-message", "Registration failed. Try again.");
+            }
+        } catch (error) {
+            displayMessage("register-message", "Error: Unable to connect to the server.");
+            console.error(error);
+        }
+    }
+
+    // Helper function to display messages
+    function displayMessage(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+    }
+
+    // Function to toggle between login and register forms
+    function toggleForms() {
+        const loginForm = document.getElementById("login-form");
+        const registerForm = document.getElementById("register-form");
+        loginForm.style.display = loginForm.style.display === "none" ? "block" : "none";
+        registerForm.style.display = registerForm.style.display === "none" ? "block" : "none";
+    }
+
+    // Event listeners
+    document.getElementById("login-button").addEventListener("click", handleLogin);
+    document.getElementById("register-button").addEventListener("click", handleRegister);
+</script>
+
+
+</body>
+</html>

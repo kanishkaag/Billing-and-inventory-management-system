@@ -1,0 +1,252 @@
+<html>
+<head>
+    <title>Smart Predictions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #f4f4f9;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #fff;
+            position: relative;
+        }
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            font-size: 16px;
+            flex-grow: 1;
+        }
+        .search-bar i {
+            font-size: 20px;
+            color: #888;
+        }
+        .suggestions {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            top: 40px;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-icons {
+            display: none;
+        }
+        tr:hover .action-icons {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html" ><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+    <!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+    <!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html" class="active"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <div class="header">
+        <h1>Smart Predictions</h1>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search " oninput="showSuggestions()">
+        <i class="fas fa-search"></i>
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>predictions</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    // Sample data for the table
+    const supplierData = [
+        { id: 5005, name: 'Basmati Rice', date: '2022-01-09', predictions: 2.41065},
+        { id: 1553, name: 'Wheat Flour', date: '2022-01-16', predictions: 8.63007,},
+        { id: 3253, name: 'Granulated Sugar', date: '2022-01-09', predictions: 4.82319 },
+        { id: 466, name: 'Cooking Oil', date: '2022-01-02', predictions: 7.48923 },
+        { id: 4756, name: 'Toothpaste', date: '2022-01-16', predictions: 0.34981 },
+        { id: 2242, name: 'Bath Soap', date: '2022-01-09', predictions: 24.6603 },
+        { id: 139, name:  'Shampoo', date: '2022-01-16', predictions: 3.10583 },
+        { id: 600, name: 'Detergent Powder', date: '2022-01-27', predictions: 1.1597 },
+        { id: 3772, name: 'Tea Leaves', date: '2022-01-06', predictions: 8.44297 },
+        { id: 5265, name: 'Coffee Powder', date: '2022-01-13', predictions: 12.0779 },
+        { id: 5699, name: 'Packaged Water', date: '2022-01-20', predictions: 3.10583 },
+        { id: 3242, name: 'Salt', date: '2022-01-27', predictions: 1.1597 },
+        { id: 3772, name: 'Chocolates', date: '2022-01-06', predictions: 8.44297 },
+        { id: 5265, name: 'Hair Color', date: '2022-01-13', predictions: 12.0779 },
+        { id: 5005, name: 'Basmati Rice', date: '2022-01-30', predictions: 7.48923},
+        { id: 1553, name: 'Wheat Flour', date: '2022-01-23', predictions: 6.73453},
+        { id: 3253, name: 'Granulated Sugar', date: '2022-01-30', predictions: 4.49732 },
+        { id: 466, name: 'Cooking Oil', date: '2022-01-23', predictions: 15.6891 },
+        { id: 4756, name: 'Toothpaste', date: '2022-02-06', predictions: 9.9795 },
+        { id: 2242, name: 'Bath Soap', date: '2022-01-13', predictions: 10.2618 },
+        { id: 139, name:  'Shampoo', date: '2022-02-06', predictions: 6.29062 },
+        { id: 600, name: 'Detergent Powder', date: '2022-01-27', predictions: 4.00285 },
+        { id: 3772, name: 'Tea Leaves', date: '2022-02-06', predictions: 19.6708 },
+        { id: 5265, name: 'Coffee Powder', date: '2022-02-06', predictions:  5.01178 },
+        { id: 5699, name: 'Packaged Water', date: '2022-02-20', predictions: 3.10583 },
+        { id: 3242, name: 'Salt', date: '2022-02-27', predictions: 1.1597 },
+        { id: 3772, name: 'Chocolates', date: '2022-02-06', predictions: 8.44297 },
+        { id: 5265, name: 'Hair Color', date: '2022-02-06', predictions: 8.70419 },
+
+    ];
+
+    // Function to populate the table
+    function displayTable(data) {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = ''; // Clear any existing rows
+        data.forEach(item => {
+            const row = `
+        <tr>
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td>${item.date}</td>
+            <td>${item.predictions}</td>
+        </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // Initialize the table with the given data
+    document.addEventListener('DOMContentLoaded', () => {
+        displayTable(supplierData);
+    });
+
+
+    // Show suggestions
+    function showSuggestions() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = ''; // Clear suggestions
+
+        const filtered = supplierData.filter(item => item.name.toLowerCase().includes(input));
+        filtered.slice(0, 3).forEach(item => {
+            const div = document.createElement('div');
+            div.innerText = item.name;
+            div.onclick = () => {
+                document.getElementById('searchInput').value = item.name;
+                suggestions.innerHTML = '';
+                filterTable(); // Optionally filter based on selection
+            };
+            suggestions.appendChild(div);
+        });
+        suggestions.style.display = filtered.length ? 'block' : 'none';
+    }
+
+    // Filter table based on search input
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+
+        // Check if the search bar is empty
+        if (query.trim() === '') {
+            displayTable(supplierData); // Display the full table
+            return;
+        }
+
+        const filtered = supplierData.filter(item => item.name.toLowerCase().includes(query));
+        displayTable(filtered);
+    }
+
+
+
+</script>
+
+
+</body>
+</html>

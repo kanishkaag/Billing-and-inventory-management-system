@@ -1,0 +1,242 @@
+<html>
+<head>
+    <title>Supplier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #f4f4f9;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #fff;
+            position: relative;
+        }
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            font-size: 16px;
+            flex-grow: 1;
+        }
+        .search-bar i {
+            font-size: 20px;
+            color: #888;
+        }
+        .suggestions {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            top: 40px;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-icons {
+            display: none;
+        }
+        tr:hover .action-icons {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html" class="active"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <div class="header">
+        <h1>Supplier</h1>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search suppliers" oninput="showSuggestions()">
+        <i class="fas fa-search"></i>
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Contact No.</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    let supplierData = [];
+
+    // Fetch supplier data
+    fetch('http://localhost:8080/backend/get_suppliers')
+        .then(response => response.json())
+        .then(data => {
+            supplierData = data;
+            displayTable(supplierData);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+    // Display table rows
+    function displayTable(data) {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            const row = `
+        <tr data-id="${item.name}">
+            <td>${item.name}</td>
+            <td>${item.contact}</td>
+            <td>${item.email}</td>
+            <td>${item.address}</td>
+            <td class="action-icons">
+                <i class="fas fa-trash" onclick="deleteRow(this)"></i>
+            </td>
+        </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // Show suggestions
+    function showSuggestions() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = ''; // Clear suggestions
+
+        const filtered = supplierData.filter(item => item.name.toLowerCase().includes(input));
+        filtered.slice(0, 3).forEach(item => {
+            const div = document.createElement('div');
+            div.innerText = item.name;
+            div.onclick = () => {
+                document.getElementById('searchInput').value = item.name;
+                suggestions.innerHTML = '';
+                filterTable(); // Optionally filter based on selection
+            };
+            suggestions.appendChild(div);
+        });
+        suggestions.style.display = filtered.length ? 'block' : 'none';
+    }
+
+    // Filter table based on search input
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = supplierData.filter(item => item.name.toLowerCase().includes(query));
+        displayTable(filtered);
+    }
+
+    // Delete row function
+    function deleteRow(icon) {
+        const row = icon.closest('tr');
+        const supplierName = row.querySelector('td').innerText;
+        const confirmed = confirm(`Are you sure you want to delete supplier: ${supplierName}?`);
+        if (confirmed) {
+            // Send DELETE request to backend
+            fetch(`http://localhost:8080/backend/delete_suppliers?name=${supplierName}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Supplier deleted successfully');
+                    // Remove row from the table
+                    supplierData = supplierData.filter(item => item.name !== supplierName);
+                    displayTable(supplierData);
+                })
+                .catch(error => {
+                    console.error('Error deleting supplier:', error);
+                    alert("Failed to delete supplier");
+                });
+        }
+    }
+</script>
+
+
+</body>
+</html>

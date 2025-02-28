@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Supplier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 500px;
+            margin: auto;
+        }
+        .form-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .form-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .form-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fce4ec;
+        }
+        .form-container button {
+            padding: 10px 20px;
+            background-color: #d1c4e9;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #b39ddb;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html" class="active"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <div class="form-container">
+        <h1>Add Supplier</h1>
+        <form id="supplierForm">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter name">
+
+            <label for="contact1">Contact No. 1</label>
+            <input type="text" id="contact1" name="contact1" placeholder="Enter contact no. 1">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter email">
+
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="Enter address">
+
+            <!-- Removed the account number and IFS fields -->
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('supplierForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        // Log the form data to the console for debugging purposes
+        console.log('Form data:', data);
+
+        // Send the data to the server using fetch
+        fetch('http://localhost:8080/backend/add_suppliers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Optionally, you could redirect or display a success message
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+</body>
+</html>

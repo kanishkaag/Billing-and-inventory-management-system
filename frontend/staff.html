@@ -1,0 +1,294 @@
+<html>
+<head>
+    <title>Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .content h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+        }
+        .search-bar button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-left: none;
+            background-color: #ccc;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        .suggestions {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            background-color: white;
+            z-index: 1000;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f2f2f2;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+    <a href="staff.html" class="active"><i class="fas fa-users"></i> STAFF</a>
+    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>
+    <a href="notification.html"><i class="fas fa-bell"></i> NOTIFICATION</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <h1>Staff</h1>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search" oninput="showSuggestions()" onkeypress="handleKeyPress(event)">
+        <button onclick="search()">Search</button>
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+    <div class="table-container">
+        <table id="staffTable">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Table rows will be dynamically generated -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    let staffData;
+
+    fetch('http://localhost:8080/backend/get_staff', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())  // Parse the JSON response
+        .then(data => {
+            staffData = data;           // Update staffData with the response data
+            console.log(staffData);      // Check the contents of staffData
+            loadTable();
+        })
+        .catch(error => {
+            console.error('Error:', error);  // Handle any errors
+        });
+
+    function loadTable() {
+        const tableBody = document.querySelector('#staffTable tbody');
+        tableBody.innerHTML = '';
+
+        if (!Array.isArray(staffData)) {
+            console.error("staffData is not an array:", staffData);
+            return;
+        }
+
+        staffData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+            <td>${item.name || ''}</td>
+            <td>${item.contact || ''}</td>
+        `;
+            document.querySelector('table tbody').appendChild(row);
+            row.addEventListener('click', function () {
+                document.querySelectorAll('#staffTable tbody tr').forEach(r => {
+                    r.classList.remove('highlighted-row');
+                    const actionCell = r.querySelector('.action-buttons');
+                    if (actionCell) {
+                        actionCell.remove();
+                    }
+                });
+
+                this.classList.add('highlighted-row');
+                const actionButtons = document.createElement('td');
+                actionButtons.className = 'action-buttons';
+                actionButtons.innerHTML = `
+                <i class="fas fa-edit edit-button" onclick="editRow(this)"></i>
+                <i class="fas fa-times delete-button" onclick="deleteRow(this)"></i>
+            `;
+                this.appendChild(actionButtons);
+            });
+            tableBody.appendChild(row);
+        });
+    }
+
+    function showSuggestions() {
+        const input = document.getElementById('searchInput').value.toLowerCase(); // Fixed id reference
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+        let count = 0;
+
+        if (input) {
+            staffData.forEach(item => {
+                if (item.name.toLowerCase().includes(input) && count < 3) {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.innerText = item.name;
+                    suggestionItem.onclick = function () {
+                        filterTable(item.name);
+                        suggestions.style.display = 'none';
+                    };
+                    suggestions.appendChild(suggestionItem);
+                    count++;
+                }
+            });
+        }
+
+        suggestions.style.display = count > 0 ? 'block' : 'none';
+    }
+
+    function filterTable(query) {
+        const tableBody = document.querySelector('#staffTable tbody');
+        tableBody.innerHTML = '';
+
+        staffData.forEach(item => {
+            if (item.name.toLowerCase().includes(query.toLowerCase())) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                        <td>${item.name || ''}</td>
+                        <td>${item.contact || ''}</td>
+                    `;
+                row.addEventListener('click', function () {
+                    document.querySelectorAll('#staffTable tbody tr').forEach(r => {
+                        r.classList.remove('highlighted-row');
+                        const actionCell = r.querySelector('.action-buttons');
+                        if (actionCell) {
+                            actionCell.remove();
+                        }
+                    });
+
+                    this.classList.add('highlighted-row');
+                    const actionButtons = document.createElement('td');
+                    actionButtons.className = 'action-buttons';
+                    actionButtons.innerHTML = `
+                            <i class="fas fa-edit edit-button" onclick="editRow(this)"></i>
+                            <i class="fas fa-times delete-button" onclick="deleteRow(this)"></i>
+                        `;
+                    this.appendChild(actionButtons);
+                });
+                tableBody.appendChild(row);
+            }
+        });
+
+        if (query === '') {
+            loadTable();
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            filterTable(document.getElementById('searchInput').value);
+            document.getElementById('suggestions').style.display = 'none';
+        }
+    }
+
+    function search() {
+        const query = document.getElementById('searchInput').value;
+        filterTable(query);
+    }
+
+    function editRow(button) {
+        const row = button.closest('tr');
+        const nameCell = row.querySelector('td:first-child');
+        const contactCell = row.querySelector('td:nth-child(2)');
+        const name = nameCell.innerText;
+        const contact = contactCell.innerText;
+        alert(`Edit ${name} - ${contact}`);
+    }
+
+    function deleteRow(button) {
+        const row = button.closest('tr');
+        const nameCell = row.querySelector('td:first-child');
+        const name = nameCell.innerText;
+        const confirmDelete = confirm(`Are you sure you want to delete ${name}?`);
+        if (confirmDelete) {
+            row.remove();
+        }
+    }
+</script>
+</body>
+
+</html>

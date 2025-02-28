@@ -1,0 +1,10 @@
+server {
+    listen       80;
+
+    location /app {
+        root   /var/www/html/;
+	try_files $uri /app/index.html;
+	add_header Cache-Control no-cache;
+        etag off;
+    }
+}

@@ -1,0 +1,359 @@
+<html>
+<head>
+    <title>Billing System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .header .date-time {
+            text-align: right;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            background-color: #d3d3d3;
+            padding: 10px;
+            position: relative;
+        }
+        .search-bar input {
+            border: none;
+            background: none;
+            flex-grow: 1;
+            padding: 5px;
+        }
+        .search-bar i {
+            margin-left: 10px;
+        }
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            z-index: 10;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f2f2f2;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            background-color: #d3d3d3;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+        }
+        .quantity-control input {
+            width: 30px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .quantity-control i {
+            cursor: pointer;
+            padding: 5px;
+        }
+        .delete-btn {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .next-btn {
+            background-color: #d4edda;
+            color: #155724;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            float: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html" class="active"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <div class="header">
+        <h1>BILLING SYSTEM</h1>
+        <div class="date-time">
+            <p id="date"></p>
+            <p id="time"></p>
+        </div>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Search" oninput="showSuggestions()">
+        <i class="fas fa-search"></i>
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+    <table id="itemTable">
+        <thead>
+        <tr>
+            <th>S. No.</th>
+            <th>Item Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>Expiry</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+    <button class="next-btn" onclick="nextPage()">NEXT</button>
+</div>
+<script>
+    async function searchProducts(query){
+        let productsList = []; // Store fetched product data
+
+        // Fetch product data from the API
+        await fetch('http://localhost:8080/backend/get_products?query='+query, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                productsList = data; // Update inventoryData with the response
+            })
+            .catch(error => {
+                console.error('Error fetching inventory data:', error);
+            });
+        return productsList;
+
+    }
+
+
+
+    // Update the date and time dynamically
+    function updateDateTime() {
+        const now = new Date();
+        document.getElementById('date').innerText = `Date: ${now.toLocaleDateString()}`;
+        document.getElementById('time').innerText = `Time: ${now.toLocaleTimeString()}`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Show search suggestions based on input
+    async function showSuggestions() {
+        const input = document.getElementById('search').value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+
+        if (input) {
+            const productsList = await searchProducts(input);
+            // Call searchProducts and handle the returned data
+            console.log('hello');
+                const filteredItems = productsList.slice(0, 5); // Limit to 5 suggestions
+                filteredItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.innerText = item.name;
+                    div.onclick = () => addItemToTable(item);
+                    suggestions.appendChild(div);
+            });
+        }
+    }
+
+
+    // Add a new item to the bill table
+    function addItemToTable(item) {
+        const table = document.getElementById('itemTable').getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+        const formattedDate = new Date(item.expiry_date).toLocaleDateString(); // Format the date to exclude time
+        newRow.innerHTML = `
+                <td>${table.rows.length}</td>
+                <td contenteditable="true">${item.name}</td>
+                <td contenteditable="true">${item.selling_price}</td>
+                <td class="quantity-control">
+                    <i class="fas fa-caret-up" onclick="changeQuantity(this, 1)"></i>
+                    <input type="text" value="1" disabled>
+                    <i class="fas fa-caret-down" onclick="changeQuantity(this, -1)"></i>
+                </td>
+                <td contenteditable="true">${item.unit || 'pcs'}</td>
+                <td>${formattedDate}</td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">X</button></td>
+            `;
+        document.getElementById('search').value = '';
+        document.getElementById('suggestions').innerHTML = '';
+    }
+
+    // Change the quantity of items in the table
+    function changeQuantity(element, change) {
+        const input = element.parentElement.querySelector('input');
+        let value = parseInt(input.value);
+        value = isNaN(value) ? 0 : value;
+        value += change;
+        if (value < 1) value = 1;
+        input.value = value;
+    }
+
+    // Delete a row from the table
+    function deleteRow(button) {
+        const row = button.parentElement.parentElement;
+        row.parentElement.removeChild(row);
+    }
+
+    // Navigate to the next page with total calculation and store item list
+    function nextPage() {
+        const total = calculateTotal();
+        console.log(total);
+        localStorage.setItem('total', total);
+
+        // Get the item list from the table and store it in localStorage
+        const items = [];
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const name = row.cells[1].innerText;
+            const price = parseFloat(row.cells[2].innerText);
+            const quantity = parseInt(row.cells[3].querySelector('input').value);
+            const unit = row.cells[4].innerText;
+            const expiry = row.cells[5].innerText;
+
+            items.push({ name, price, qty: quantity, unit, expDate: expiry });
+        });
+        localStorage.setItem('itemList', JSON.stringify(items));
+
+        window.location.href = 'bill2.html';
+    }
+
+
+    // Calculate the total price
+    function calculateTotal() {
+        const rows = document.querySelectorAll('tbody tr');
+        let total = 0;
+        rows.forEach(row => {
+            const price = parseFloat(row.cells[2].innerText);
+            const quantity = parseInt(row.cells[3].querySelector('input').value);
+            if (!isNaN(price) && !isNaN(quantity)) {
+                total += price * quantity;
+            }
+        });
+        return total;
+    }
+
+    // For 'Pay Now' scenario
+    document.getElementById('pay-now').addEventListener('click', function() {
+        const customerName = document.getElementById('customer-name').value;
+        const contactNumber = document.getElementById('contact-number').value;
+        const totalAmount = localStorage.getItem('total'); // Assuming total is already stored in localStorage
+        const itemList = JSON.parse(localStorage.getItem('itemList')) || []; // Get the item list from localStorage
+
+        if (customerName && contactNumber) {
+            // Store items and other data in localStorage
+            localStorage.setItem('customerName', customerName);
+            localStorage.setItem('contactNumber', contactNumber);
+            localStorage.setItem('payNow', 'true'); // Indicating immediate payment
+            localStorage.setItem('itemList', JSON.stringify(itemList));
+
+            // Redirect to generate_bill.html with customer data, total, and items as query params
+            window.location.href = `generate_bill.html?customerName=${encodeURIComponent(customerName)}&contactNumber=${encodeURIComponent(contactNumber)}&totalAmount=${encodeURIComponent(totalAmount)}&payNow=true`;
+        } else {
+            alert('Please enter valid customer details.');
+        }
+    });
+
+    // For 'Pay Later' scenario
+    document.getElementById('pay-later').addEventListener('click', function() {
+        const customerName = document.getElementById('customer-name').value;
+        const contactNumber = document.getElementById('contact-number').value;
+        const totalAmount = localStorage.getItem('total'); // Assuming total is already stored in localStorage
+        const itemList = JSON.parse(localStorage.getItem('itemList')) || []; // Get the item list from localStorage
+
+        if (customerName && contactNumber) {
+            // Store items and other data in localStorage
+            localStorage.setItem('customerName', customerName);
+            localStorage.setItem('contactNumber', contactNumber);
+            localStorage.setItem('payNow', 'false'); // Indicating payment later
+            localStorage.setItem('itemList', JSON.stringify(itemList));
+
+            // Redirect to generate_bill.html with customer data, total, and items as query params
+            window.location.href = `generate_bill.html?customerName=${encodeURIComponent(customerName)}&contactNumber=${encodeURIComponent(contactNumber)}&totalAmount=${encodeURIComponent(totalAmount)}&payNow=false`;
+        } else {
+            alert('Please enter valid customer details.');
+        }
+    });
+
+</script>
+</body>
+</html>

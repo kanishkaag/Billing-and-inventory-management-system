@@ -1,0 +1,481 @@
+<html>
+<head>
+    <title>Inventory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .search-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .search-bar input {
+            border: none;
+            background: none;
+            padding: 5px;
+            font-size: 16px;
+            outline: none;
+            width: 200px;
+        }
+        .search-bar i {
+            font-size: 20px;
+            color: #333;
+        }
+        .search-suggestions {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            display: none;
+        }
+        .search-suggestions div {
+            padding: 5px 0;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .highlighted-row {
+            background-color: #d3d3d3;
+        }
+        .action-buttons {
+            display: flex;
+            align-items: center;
+        }
+        .action-buttons i {
+            font-size: 20px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .edit-button {
+            color: #4CAF50;
+        }
+        .delete-button {
+            color: #F44336;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"class="active"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+    <div class="content">
+        <div class="header">
+            <h1>Inventory</h1>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search..." oninput="showSuggestions()" onkeypress="handleKeyPress(event)">
+                <button onclick="search()">Search</button>
+                <i class="fas fa-search"></i>
+                <div class="search-suggestions" id="suggestions"></div>
+            </div>
+        </div>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Size</th>
+                    <th>Quantity</th>
+                    <th>unit</th>
+                    <th>Cost Price</th>
+                    <th>Selling Price</th>
+                    <th>mfd</th>
+                    <th>Expiry</th>
+                    <th>Supplier</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be dynamically generated -->
+            </tbody>
+        </table>
+    </div>
+<script>
+    let inventoryData;
+
+    // Fetch all products when the page loads
+    fetch('http://localhost:8080/backend/get_products', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())  // Parse the JSON response
+        .then(data => {
+            inventoryData = data;           // Update inventoryData with the response data
+            console.log(inventoryData);      // Check the contents of inventoryData
+            loadTable();
+        })
+        .catch(error => {
+            console.error('Error:', error);  // Handle any errors
+        });
+
+    function showSuggestions() {
+        const input = document.getElementById('search-input').value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+        let count = 0;
+
+        if (input) {
+            fetchSuggestions(input).then(suggestedItems => {
+                suggestedItems.forEach(item => {
+                    if (count < 3) {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.innerText = item.name;
+                        suggestionItem.onclick = function() {
+                            filterTable(item.name);
+                            suggestions.style.display = 'none';
+                        };
+                        suggestions.appendChild(suggestionItem);
+                        count++;
+                    }
+                });
+
+                suggestions.style.display = count > 0 ? 'block' : 'none';
+            });
+        } else {
+            suggestions.style.display = 'none';
+        }
+    }
+
+    function fetchSuggestions(query) {
+        return fetch(`http://localhost:8080/backend/get_products?query=${query}`)
+            .then(response => response.json())
+            .then(data => data)
+            .catch(error => {
+                console.error('Error fetching suggestions:', error);
+                return [];
+            });
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            filterTable(document.getElementById('search-input').value);
+            document.getElementById('suggestions').style.display = 'none';
+        }
+    }
+
+    function search() {
+        const query = document.getElementById('search-input').value;
+        filterTable(query);
+    }
+
+    function filterTable(query) {
+        const tableBody = document.querySelector('#inventory-table tbody');
+        tableBody.innerHTML = '';
+
+        inventoryData.forEach(item => {
+            if (item.name.toLowerCase().includes(query.toLowerCase())) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.code || ''}</td>
+                    <td>${item.name || ''}</td>
+                    <td>${item.brand || ''}</td>
+                    <td>${item.size || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${item.unit || ''}</td>
+                    <td>${item.cost_price || ''}</td>
+                    <td>${item.selling_price || ''}</td>
+                    <td>${formatDate(item.manufacturing_date) || ''}</td>
+                    <td>${formatDate(item.expiry_date) || ''}</td>
+                    <td>${item.supplier_id || ''}</td>
+                `;
+                row.addEventListener('click', function() {
+                    document.querySelectorAll('#inventory-table tbody tr').forEach(r => {
+                        r.classList.remove('highlighted-row');
+                        const actionCell = r.querySelector('.action-buttons');
+                        if (actionCell) {
+                            actionCell.remove();
+                        }
+                    });
+
+                    this.classList.add('highlighted-row');
+                    const actionButtons = document.createElement('td');
+                    actionButtons.className = 'action-buttons';
+                    actionButtons.innerHTML = `
+                        <i class="fas fa-edit edit-button" onclick="editRow(this)"></i>
+                        <i class="fas fa-times delete-button" onclick="deleteRow('${item.code}')"></i>
+                    `;
+                    this.appendChild(actionButtons);
+                });
+                tableBody.appendChild(row);
+            }
+        });
+
+        if (query === '') {
+            loadTable();
+        }
+    }
+
+    function formatDate(date) {
+        const d = new Date(date);
+        return d.toISOString().split('T')[0]; // Returns date in 'YYYY-MM-DD' format
+    }
+
+    function loadTable() {
+        const tableBody = document.querySelector('#inventory-table tbody');
+        tableBody.innerHTML = '';
+
+        if (!Array.isArray(inventoryData)) {
+            console.error("inventoryData is not an array:", inventoryData);
+            return;
+        }
+
+        inventoryData.forEach(item => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td>${item.code || ''}</td>
+                <td>${item.name || ''}</td>
+                <td>${item.brand || ''}</td>
+                <td>${item.size || ''}</td>
+                <td>${item.quantity || ''}</td>
+                <td>${item.unit || ''}</td>
+                <td>${item.cost_price || ''}</td>
+                <td>${item.selling_price || ''}</td>
+                <td>${formatDate(item.manufacturing_date) || ''}</td>
+                <td>${formatDate(item.expiry_date) || ''}</td>
+                <td>${item.supplier_id || ''}</td>
+            `;
+
+            // Adding action buttons for edit and delete
+            const actionButtons = document.createElement('td');
+            actionButtons.className = 'action-buttons';
+            actionButtons.innerHTML = `
+                <i class="fas fa-edit edit-button" onclick="editRow(this)"></i>
+                <i class="fas fa-trash-alt" onclick="deleteRow('${item.code}')"></i>
+            `;
+            row.appendChild(actionButtons);
+
+            row.addEventListener('click', function() {
+                document.querySelectorAll('#inventory-table tbody tr').forEach(r => {
+                    r.classList.remove('highlighted-row');
+                    const actionCell = r.querySelector('.action-buttons');
+                    if (actionCell) {
+                        actionCell.remove();
+                    }
+                });
+
+                this.classList.add('highlighted-row');
+                this.appendChild(actionButtons);  // Re-attach action buttons on row click
+            });
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    function formatDate(date) {
+        const d = new Date(date);
+        return d.toLocaleDateString(); // Formats the date as 'MM/DD/YYYY' or based on browser locale
+    }
+
+    async function deleteRow(productCode) {
+        const apiUrl = 'http://localhost:8080/backend/delete_products';
+
+        try {
+            const response = await fetch(`${apiUrl}?code=${productCode}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log("Product deleted successfully:", result);
+
+                // After deleting the product, remove it from the table
+                inventoryData = inventoryData.filter(item => item.code !== productCode);
+                loadTable();  // Reload table with updated data
+            } else {
+                console.error(`Failed to delete product. Status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Error while deleting the product:", error);
+        }
+    }
+
+    function editRow(button) {
+        const row = button.closest('tr');
+        const cells = row.querySelectorAll('td');
+        const rowData = {}; // To store original values in case of cancellation
+
+        // Replace each cell with an input field
+        for (let i = 0; i < cells.length - 1; i++) {  // Exclude action buttons column
+            const cell = cells[i];
+            const originalValue = cell.innerText; // Store original value
+            rowData[i] = originalValue; // Save it in case of cancellation
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = originalValue;
+            cell.innerText = ''; // Clear cell content
+            cell.appendChild(input);
+        }
+
+        // Update buttons
+        button.className = 'fas fa-check save-button'; // Change to "OK"
+        button.style.color = 'green';
+        button.onclick = function () {
+            saveRow(button, rowData, row); // Pass original data in case of cancellation
+        };
+
+        // Add a cancel button
+        const cancelButton = document.createElement('i');
+        cancelButton.className = 'fas fa-times cancel-button';
+        cancelButton.style.color = 'red';
+        cancelButton.onclick = function () {
+            cancelEdit(row, rowData); // Revert changes
+        };
+        const actionCell = row.querySelector('.action-buttons');
+        actionCell.appendChild(cancelButton);
+    }
+
+    async function saveRow(button, originalData, row) {
+        const inputs = row.querySelectorAll('input');
+        const updatedData = {};
+
+        updatedData['code'] = inputs[0].value;
+        updatedData['name'] = inputs[1].value;
+        updatedData['brand'] = inputs[2].value;
+        updatedData['size'] = inputs[3].value ? String(inputs[3].value) : '';  // size is converted to string
+        updatedData['quantity'] = inputs[4].value ? parseInt(inputs[4].value, 10) : 0;  // Convert quantity to integer
+        updatedData['unit'] = inputs[5].value ? String(inputs[5].value) : '';  // Convert unit to string if needed
+        updatedData['cost_price'] = inputs[6].value ? parseFloat(inputs[6].value) : null;
+        updatedData['selling_price'] = inputs[7].value ? parseFloat(inputs[7].value) : null;  // Convert selling_price to float
+        updatedData['manufacturing_date'] = inputs[8].value;
+        updatedData['expiry_date'] = inputs[9].value;
+        updatedData['supplier_id'] = inputs[10].value;
+
+        console.log(updatedData);
+
+        try {
+            const response = await fetch('http://localhost:8080/backend/update_products', {
+                method: 'PATCH',  // Ensure the method is PATCH
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log("Product updated successfully:", result);
+                row.innerHTML = `
+                <td>${updatedData.code || ''}</td>
+                <td>${updatedData.name || ''}</td>
+                <td>${updatedData.brand || ''}</td>
+                <td>${updatedData.size || ''}</td>
+                <td>${updatedData.quantity || ''}</td>
+                <td>${updatedData.unit || ''}</td>
+                <td>${updatedData.cost_price || ''}</td>
+                <td>${updatedData.selling_price || ''}</td>
+                <td>${updatedData.manufacturing_date || ''}</td>
+                <td>${updatedData.expiry_date || ''}</td>
+                <td>${updatedData.supplier_id || ''}</td>
+            `;
+            } else {
+                console.error(`Failed to update product. Status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error while saving the product:', error);
+        }
+    }
+
+
+    function cancelEdit(row, originalData) {
+        row.innerHTML = `
+            <td>${originalData[0]}</td>
+            <td>${originalData[1]}</td>
+            <td>${originalData[2]}</td>
+            <td>${originalData[3]}</td>
+            <td>${originalData[4]}</td>
+            <td>${originalData[5]}</td>
+            <td>${originalData[6]}</td>
+            <td>${originalData[7]}</td>
+            <td>${originalData[8]}</td>
+            <td>${originalData[9]}</td>
+            <td>${originalData[10]}</td>
+        `;
+    }
+
+</script>
+
+
+</body>
+</html>

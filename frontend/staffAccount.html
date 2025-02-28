@@ -1,0 +1,278 @@
+<html>
+<head>
+    <title>Staff Account</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto; /* Add this to allow scrolling if needed */
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+        }
+        .profile-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            background-color: #d3d3d3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 30px;
+        }
+        .profile-pic i {
+            font-size: 60px;
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label {
+            width: 150px;
+            margin-right: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-group input[type="checkbox"] {
+            margin-left: 10px;
+        }
+        .form-group .inline {
+            display: flex;
+            align-items: center;
+        }
+        .form-group .inline input {
+            width: auto;
+        }
+        .form-group .inline label {
+            display: inline;
+        }
+        .form-group .inline input[type="text"] {
+            width: 50px;
+        }
+        .form-group .inline select {
+            width: auto;
+        }
+        .form-group .inline .currency {
+            width: 30px;
+            text-align: center;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+        .form-group .inline .amount {
+            width: 80px;
+        }
+        .form-group .inline .type {
+            width: 120px;
+        }
+        .form-group .inline .days {
+            width: 60px;
+        }
+        .form-group .inline .deduction {
+            width: 60px;
+        }
+        .form-group .inline .deduction-amount {
+            width: 80px;
+        }
+        .form-group .inline .more-details {
+            text-align: right;
+            margin-top: 10px;
+        }
+        .form-group .inline .more-details a {
+            color: #000;
+            text-decoration: none;
+        }
+        .form-group .inline .more-details a:hover {
+            text-decoration: underline;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .link {
+            color: #006400;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .form-group-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .profile-container .form-group {
+            width: 400px;
+        }
+        .form-group-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .form-group-row .form-group {
+            margin-right: 20px;
+        }
+        .form-group-row .btn {
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html" class="active"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>
+    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>
+    <a href="notification.html"><i class="fas fa-bell"></i> NOTIFICATION</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+        <div class="content">
+            <div class="header">Staff Account</div>
+            <div class="profile-container">
+                <div class="profile-section">
+                    <div class="profile-pic">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label>Staff Id :</label>
+                            <input type="text" name="staff_id">
+                        </div>
+                        <div class="form-group">
+                            <label>Name :</label>
+                            <input type="text" name="name">
+                        </div>
+                        <div class="form-group">
+                            <a href="#" class="link">View Payment History</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group-row">
+                    <button class="btn btn-primary">Pay Salary</button>
+                    <div class="form-group">
+                        <label>Credit Available :</label>
+                        <div class="inline">
+                            <input type="text" class="currency" value="Rs" readonly>
+                            <input type="text" class="amount" value="6000" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Salary Amount :</label>
+                <div class="inline">
+                    <input type="text" class="currency" value="Rs" readonly>
+                    <input type="text" class="amount" value="6000" readonly>
+                </div>
+                <label>Type :</label>
+                <div class="inline">
+                    <input type="text" class="type" value="Monthly" readonly>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Absent Days :</label>
+                <div class="inline">
+                    <input type="number" class="days" value="2">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Deduct salary when absent :</label>
+                <div class="inline">
+                    <input type="checkbox" checked>
+                </div>
+                <label>Deduction Amount :</label>
+                <div class="inline">
+                    <input type="text" class="currency" value="Rs" readonly>
+                    <input type="text" class="deduction-amount" value="100" readonly>
+                </div>
+            </div>
+            <div class="form-group more-details">
+                <a href="#">More Details</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

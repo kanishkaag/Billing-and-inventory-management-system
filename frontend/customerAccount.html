@@ -1,0 +1,249 @@
+<html>
+<head>
+    <title>Bill Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #f4f4f9;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #e6ccff;
+            padding: 10px 0px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+            margin: 20px 20px;
+            padding: 10px 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #d1b3ff;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #fff;
+            position: relative;
+        }
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            font-size: 16px;
+            flex-grow: 1;
+        }
+        .search-bar i {
+            font-size: 20px;
+            color: #888;
+        }
+        .suggestions {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            top: 40px;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .action-icons {
+            display: none;
+        }
+        tr:hover .action-icons {
+            display: inline-block;
+        }
+        .details-row {
+            background-color: #f9f9f9;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <a href="bill.html"><i class="fas fa-file-invoice"></i> CREATE BILL</a>
+    <a href="inventory.html"><i class="fas fa-shopping-cart"></i> INVENTORY</a>
+    <a href="addProduct.html"><i class="fas fa-plus-square"></i> ADD PRODUCT</a>
+    <a href="supplier.html"><i class="fas fa-truck"></i> SUPPLIER</a>
+    <a href="addSupplier.html"><i class="fas fa-user-plus"></i> ADD SUPPLIER</a>
+    <a href="customerAccount.html" class="active"><i class="fas fa-file-invoice-dollar"></i> BILL RECORD</a>
+<!--    <a href="staff.html"><i class="fas fa-users"></i> STAFF</a>-->
+<!--    <a href="addStaff.html"><i class="fas fa-user-plus"></i> ADD STAFF</a>-->
+    <a href="notification.html"><i class="fas fa-bell"></i> PREDICTIONS</a>
+    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> LOG OUT</a>
+</div>
+<div class="content">
+    <div class="header">
+        <h1>Bill Management</h1>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search bills" oninput="showSuggestions()">
+        <i class="fas fa-search"></i>
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Customer Name</th>
+            <th>Contact Number</th>
+            <th>Total Amount</th>
+            <th>Payment Status</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    let billsData = [];
+
+    // Fetch billing data (you can replace this URL with your backend endpoint)
+    fetch('http://localhost:8080/backend/get_bills')
+        .then(response => response.json())
+        .then(data => {
+            billsData = data;
+            displayTable(billsData);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+    // Display table rows
+    function displayTable(data) {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = ''; // Clear the table body
+
+        data.forEach(item => {
+            const row = `
+        <tr onclick="toggleDetails(this)">
+            <td>${item.customer_name}</td>
+            <td>${item.contact_number}</td>
+            <td>${item.total_amount}</td>
+            <td>${item.payment_status}</td>
+        </tr>
+        <tr class="details-row">
+            <td colspan="4">
+                <table class="item-details-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Price per Item</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${item.items.map(i => `
+                            <tr>
+                                <td>${i.name}</td>
+                                <td>${i.qty}</td>
+                                <td>${i.price}</td>
+                                <td>${new Date(i.expiry_date).toLocaleDateString()}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </td>
+        </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+
+    // Show or hide item details when customer name is clicked
+    function toggleDetails(row) {
+        const nextRow = row.nextElementSibling;
+        if (nextRow && nextRow.classList.contains('details-row')) {
+            nextRow.style.display = nextRow.style.display === 'none' ? 'table-row' : 'none';
+        }
+    }
+
+    // Show suggestions based on input
+    function showSuggestions() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+
+        const filtered = billsData.filter(item => item.customer_name.toLowerCase().includes(input));
+        filtered.slice(0, 3).forEach(item => {
+            const div = document.createElement('div');
+            div.innerText = item.customer_name;
+            div.onclick = () => {
+                document.getElementById('searchInput').value = item.customer_name;
+                suggestions.innerHTML = '';
+                filterTable();
+            };
+            suggestions.appendChild(div);
+        });
+        suggestions.style.display = filtered.length ? 'block' : 'none';
+    }
+
+    // Filter table based on the search input customer_name
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = billsData.filter(item => item.customer_name.toLowerCase().includes(query));
+        displayTable(filtered);
+    }
+</script>
+</body>
+</html>
